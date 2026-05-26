@@ -253,6 +253,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .toggle-thumb{width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:transform .25s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 4px rgba(0,0,0,.4);}
 .toggle.on .toggle-thumb{transform:translateX(18px);}
 
+
+/* ── PROFIL ── */
+.profil-section{padding:14px 14px 0;}
+.profil-card{background:var(--bg1);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:10px;}
+.profil-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--bl));display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;}
+.profil-name{text-align:center;font-size:18px;font-weight:700;letter-spacing:-.3px;margin-bottom:2px;}
+.profil-sub{text-align:center;font-size:12px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-bottom:16px;}
+.profil-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.profil-kpi{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;}
+.profil-kpi-v{font-size:18px;font-weight:700;color:var(--g);}
+.profil-kpi-l{font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+.profil-divider{height:1px;background:var(--line);margin:12px 0;}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:calc(var(--sb)+72px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg2);border:1px solid var(--line2);color:var(--t1);padding:10px 18px;border-radius:20px;font-size:12px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;z-index:200;backdrop-filter:blur(10px);}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -448,6 +461,69 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 
 </div><!-- /scroll -->
 
+
+<!-- ══════════ PAGE : PROFIL ══════════ -->
+<div class="page" id="p-profil">
+  <div class="profil-section" style="padding-top:14px;">
+    <div class="profil-card">
+      <div class="profil-avatar">🏃</div>
+      <div class="profil-name" id="pr-name-disp">Charles-Louis</div>
+      <div class="profil-sub" id="pr-sub-disp">Chargement…</div>
+      <div class="profil-kpis">
+        <div class="profil-kpi"><div class="profil-kpi-v" id="pr-imc">—</div><div class="profil-kpi-l">IMC</div></div>
+        <div class="profil-kpi"><div class="profil-kpi-v" id="pr-poids">—</div><div class="profil-kpi-l">Poids</div></div>
+        <div class="profil-kpi"><div class="profil-kpi-v g" id="pr-objectif">−10kg</div><div class="profil-kpi-l">Objectif</div></div>
+      </div>
+    </div>
+
+    <div class="profil-card">
+      <div class="sec-hdr" style="margin-bottom:12px;"><h2>Mes données</h2></div>
+      <div class="f-group">
+        <div class="f-field"><label class="f-lbl">Prénom</label><input class="f-in" type="text" id="pr-prenom" placeholder="Charles-Louis" value="Charles-Louis"></div>
+        <div class="f-field"><label class="f-lbl">Âge</label><input class="f-in" type="number" id="pr-age" placeholder="ex. 45" inputmode="numeric"></div>
+      </div>
+      <div class="f-group">
+        <div class="f-field"><label class="f-lbl">Poids actuel (kg)</label><input class="f-in" type="number" id="pr-poids-in" placeholder="82.0" step="0.1" inputmode="decimal"></div>
+        <div class="f-field"><label class="f-lbl">Taille (cm)</label><input class="f-in" type="number" id="pr-taille-in" placeholder="168" inputmode="numeric"></div>
+      </div>
+      <div class="f-group">
+        <div class="f-field"><label class="f-lbl">Poids objectif (kg)</label><input class="f-in" type="number" id="pr-poids-obj" placeholder="72.0" step="0.1" inputmode="decimal"></div>
+        <div class="f-field"><label class="f-lbl">Niveau</label>
+          <select class="f-in" id="pr-niveau">
+            <option value="debutant">Débutant</option>
+            <option value="intermediaire">Intermédiaire</option>
+            <option value="confirme">Confirmé</option>
+          </select>
+        </div>
+      </div>
+      <div class="f-group full">
+        <div class="f-field"><label class="f-lbl">Objectif principal</label>
+          <select class="f-in" id="pr-objectif-in">
+            <option value="semi">Semi-marathon</option>
+            <option value="10k">10 km</option>
+            <option value="marathon">Marathon</option>
+            <option value="sante">Forme & santé</option>
+          </select>
+        </div>
+      </div>
+      <div class="profil-divider"></div>
+      <div class="sec-hdr" style="margin-bottom:12px;"><h2>Date de début du plan</h2></div>
+      <div class="f-group full">
+        <div class="f-field"><label class="f-lbl">Démarré le</label><input class="f-in" type="date" id="pr-start"></div>
+      </div>
+      <button class="btn-main" onclick="saveProfil()">Enregistrer le profil</button>
+    </div>
+
+    <div class="profil-card">
+      <div class="sec-hdr" style="margin-bottom:10px;"><h2>FC maximale estimée</h2><small id="pr-fcmax-disp" style="color:var(--re);">—</small></div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.6;">Basée sur la formule 220 − âge. Les zones cardiaques de l'app s'adaptent automatiquement à ta FC max.</div>
+      <div class="profil-divider"></div>
+      <div class="sec-hdr" style="margin-bottom:10px;"><h2>Progression</h2></div>
+      <div id="pr-prog-detail" style="font-size:12px;color:var(--t2);line-height:1.8;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- NAV -->
 <nav class="nav">
   <button class="nb on" onclick="go('today',this)"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-linecap="round"/></svg><span>Aujourd'hui</span></button>
@@ -455,6 +531,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   <button class="nb" onclick="go('stats',this)"><svg viewBox="0 0 24 24" fill="none"><path d="M3 17l4-6 4 4 4-7 4 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Stats</span></button>
   <button class="nb" onclick="go('histo',this)"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor"/><path d="M8 2v4M16 2v4M3 10h18" stroke="currentColor" stroke-linecap="round"/></svg><span>Historique</span></button>
   <button class="nb" onclick="go('ia',this)"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2.5 7.5H22l-6.5 4.5 2.5 7.5L12 17l-6 4.5 2.5-7.5L2 9.5h7.5L12 2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Analyse IA</span></button>
+  <button class="nb" onclick="go('profil',this)"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-linecap="round"/></svg><span>Profil</span></button>
 </nav>
 
 <!-- OVERLAY + SHEET : AJOUTER ACTIVITÉ -->
@@ -1061,7 +1138,7 @@ Fournis une analyse structurée et précise en français :
 Sois précis sur les données, encourageant, et adapte les conseils à la semaine ${wk} du plan. Texte simple sans markdown ni astérisques.`;
 
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompt}]})});
     const data=await r.json();
     const text=data.content?.filter(c=>c.type==='text').map(c=>c.text).join('')||'Analyse indisponible.';
     box.className='ai-text';
@@ -1144,6 +1221,86 @@ function toast(msg,dur=2300){
   t.textContent=msg; t.classList.add('on');
   setTimeout(()=>t.classList.remove('on'),dur);
 }
+
+
+// ═══════════════════════════════════════════
+// PROFIL
+// ═══════════════════════════════════════════
+function saveProfil(){
+  loadAll();
+  cfg.prenom = document.getElementById('pr-prenom').value.trim() || 'Athlète';
+  cfg.age = parseInt(document.getElementById('pr-age').value)||null;
+  const p = parseFloat(document.getElementById('pr-poids-in').value);
+  const t = parseInt(document.getElementById('pr-taille-in').value);
+  const po = parseFloat(document.getElementById('pr-poids-obj').value);
+  if(p){ cfg.poidsDepart = cfg.poidsDepart||p; cfg.poidsCourant = p; }
+  if(t) cfg.taille = t;
+  if(po) cfg.poidsObjectif = po;
+  cfg.niveau = document.getElementById('pr-niveau').value;
+  cfg.objectif = document.getElementById('pr-objectif-in').value;
+  const sd = document.getElementById('pr-start').value;
+  if(sd) cfg.startDate = sd;
+  saveAll();
+  renderProfil();
+  toast('✓ Profil enregistré');
+  // Mettre à jour le header semaine
+  const wkNum = currentPlanWeek();
+  document.getElementById('hdr-week').textContent = wkNum ? 'Semaine '+wkNum+'/16 — '+PLAN[wkNum-1].phase : 'Plan 16 semaines';
+}
+
+function renderProfil(){
+  loadAll();
+  // Remplir les champs
+  if(cfg.prenom) document.getElementById('pr-prenom').value = cfg.prenom;
+  if(cfg.age) document.getElementById('pr-age').value = cfg.age;
+  const taille = cfg.taille||168;
+  const withP = Object.values(db.days).filter(d=>d.poids).sort((a,b)=>a.date.localeCompare(b.date));
+  const lastP = withP.length ? withP[withP.length-1].poids : (cfg.poidsCourant||null);
+  const firstP = cfg.poidsDepart || (withP.length ? withP[0].poids : null);
+  if(lastP) document.getElementById('pr-poids-in').value = lastP.toFixed(1);
+  if(taille !== 168) document.getElementById('pr-taille-in').value = taille;
+  if(cfg.poidsObjectif) document.getElementById('pr-poids-obj').value = cfg.poidsObjectif;
+  if(cfg.niveau) document.getElementById('pr-niveau').value = cfg.niveau;
+  if(cfg.objectif) document.getElementById('pr-objectif-in').value = cfg.objectif;
+  if(cfg.startDate) document.getElementById('pr-start').value = cfg.startDate;
+  // KPIs
+  if(lastP){
+    const imc = lastP/(taille/100*taille/100);
+    document.getElementById('pr-imc').textContent = imc.toFixed(1);
+    document.getElementById('pr-poids').textContent = lastP.toFixed(1)+'kg';
+  }
+  const obj = cfg.poidsObjectif||72;
+  const perdu = firstP&&lastP ? Math.max(0,firstP-lastP) : 0;
+  const reste = firstP&&lastP ? Math.max(0,lastP-obj) : '—';
+  document.getElementById('pr-objectif').textContent = typeof reste==='number'?'-'+reste.toFixed(1)+'kg':'-10kg';
+  // Sous-titre
+  const fcmax = cfg.age ? 220-cfg.age : 175;
+  document.getElementById('pr-fcmax-disp').textContent = fcmax+' bpm';
+  document.getElementById('pr-sub-disp').textContent = [
+    cfg.age?cfg.age+' ans':'',
+    taille?taille+'cm':'168cm',
+    lastP?lastP.toFixed(1)+'kg':''
+  ].filter(Boolean).join(' · ');
+  document.getElementById('pr-name-disp').textContent = cfg.prenom||'Athlète';
+  // Progression détail
+  const wk = currentPlanWeek()||1;
+  const allRuns = Object.values(db.days).flatMap(d=>(d.activities||[]).filter(a=>a.sport==='course'));
+  const kmTotal = allRuns.reduce((s,a)=>s+(a.dist||0),0);
+  const seances = Object.values(db.days).filter(d=>d.activities&&d.activities.length).length;
+  document.getElementById('pr-prog-detail').innerHTML = [
+    '📅 Semaine <strong>'+(wk)+'/16</strong> du plan',
+    '🏃 <strong>'+kmTotal.toFixed(1)+' km</strong> courus au total',
+    '📆 <strong>'+seances+'</strong> journées enregistrées',
+    perdu>0?'⚖ <strong>'+perdu.toFixed(1)+' kg</strong> perdus depuis le début':''
+  ].filter(Boolean).join('<br>');
+}
+
+// Patch go() pour appeler renderProfil
+const _origGo = go;
+go = function(id, btn){
+  _origGo(id, btn);
+  if(id==='profil') renderProfil();
+};
 
 // ═══════════════════════════════════════════
 // START
