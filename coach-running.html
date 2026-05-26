@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Coach">
 <meta name="theme-color" content="#030305">
 <title>Coach Running</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -266,6 +267,33 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .profil-kpi-l{font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
 .profil-divider{height:1px;background:var(--line);margin:12px 0;}
 
+
+/* ── CARTE ── */
+.map-card{background:var(--bg1);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:10px;}
+.map-card-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);}
+.map-card-head h3{font-size:13px;font-weight:700;letter-spacing:-.2px;}
+.map-card-head small{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
+#map-main{height:280px;width:100%;background:var(--bg2);}
+.map-chips{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.map-chip{flex-shrink:0;display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--line2);border-radius:20px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.map-chip.active{border-color:var(--g);color:var(--g);background:var(--gd);}
+.map-chip svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;}
+.fav-list{padding:0 14px 12px;display:flex;flex-direction:column;gap:6px;}
+.fav-row{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;transition:all .15s;}
+.fav-row:active{background:var(--bg3);}
+.fav-ico{width:28px;height:28px;border-radius:8px;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.fav-name{font-size:13px;font-weight:600;flex:1;}
+.fav-meta{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
+.fav-del{font-size:16px;color:var(--re);cursor:pointer;padding:0 4px;}
+.add-fav-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:transparent;border:1px dashed rgba(0,245,160,.25);border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;color:var(--g);margin:0 14px 12px;}
+
+
+/* ── BADGES ── */
+.badge-award{display:inline-flex;align-items:center;gap:3px;background:var(--amd);border:1px solid rgba(255,201,77,.3);border-radius:20px;padding:3px 8px;font-size:10px;font-weight:700;color:var(--am);}
+.badge-award.green{background:var(--gd);border-color:rgba(0,245,160,.3);color:var(--g);}
+.badge-award.blue{background:var(--bld);border-color:rgba(91,156,246,.3);color:var(--bl);}
+.weather-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bld);border:1px solid rgba(91,156,246,.2);border-radius:10px;padding:3px 8px;font-size:11px;color:var(--bl);font-family:'JetBrains Mono',monospace;}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:calc(var(--sb)+72px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg2);border:1px solid var(--line2);color:var(--t1);padding:10px 18px;border-radius:20px;font-size:12px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;z-index:200;backdrop-filter:blur(10px);}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -376,6 +404,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
             <option value="course">🏃 Course</option>
             <option value="piscine">🏊 Piscine</option>
             <option value="tennis">🎾 Tennis</option>
+            <option value="rugby">🏉 Rugby à 5</option>
+            <option value="muscu">🏋️ Musculation</option>
+            <option value="velo">🚴 Vélo</option>
+            <option value="basket">🏀 Basket</option>
           </select>
         </div>
       </div>
@@ -524,6 +556,55 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   </div>
 </div>
 
+
+<!-- ══════════ PAGE : CARTE ══════════ -->
+<div class="page" id="p-map">
+  <div style="padding:14px 14px 0;">
+
+    <!-- Carte principale -->
+    <div class="map-card">
+      <div class="map-card-head">
+        <h3>🗺 Mes parcours</h3>
+        <small id="map-count">0 activité</small>
+      </div>
+      <div class="map-chips">
+        <div class="map-chip active" onclick="filterMap('all',this)"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9"/></svg>Tout</div>
+        <div class="map-chip" onclick="filterMap('course',this)">🏃 Course</div>
+        <div class="map-chip" onclick="filterMap('piscine',this)">🏊 Piscine</div>
+        <div class="map-chip" onclick="filterMap('tennis',this)">🎾 Tennis</div>
+        <div class="map-chip" onclick="filterMap('rugby',this)">🏉 Rugby</div>
+        <div class="map-chip" onclick="filterMap('muscu',this)">🏋️ Muscu</div>
+        <div class="map-chip" onclick="filterMap('velo',this)">🚴 Vélo</div>
+        <div class="map-chip" onclick="filterMap('basket',this)">🏀 Basket</div>
+        <div class="map-chip" onclick="filterMap('favs',this)">⭐ Favoris</div>
+      </div>
+      <div id="map-main"></div>
+    </div>
+
+    <!-- Lieux favoris -->
+    <div class="map-card">
+      <div class="map-card-head">
+        <h3>⭐ Lieux favoris</h3>
+        <small id="fav-count">0 lieu</small>
+      </div>
+      <div class="fav-list" id="fav-list">
+        <div style="padding:8px 0;font-size:12px;color:var(--t3);text-align:center;" id="fav-empty">Appuie longtemps sur la carte pour ajouter un lieu favori</div>
+      </div>
+      <div class="add-fav-btn" onclick="openAddFav()">
+        <svg viewBox="0 0 24 24" fill="none" width="14" height="14" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+        Ajouter un lieu manuellement
+      </div>
+    </div>
+
+    <!-- Stats par zone -->
+    <div class="map-card" style="margin-bottom:0;">
+      <div class="map-card-head"><h3>📊 Stats par lieu favori</h3></div>
+      <div id="zone-stats" style="padding:10px 14px;font-size:12px;color:var(--t3);text-align:center;">Ajoute des lieux favoris pour voir les stats</div>
+    </div>
+
+  </div>
+</div>
+
 <!-- NAV -->
 <nav class="nav">
   <button class="nb on" onclick="go('today',this)"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-linecap="round"/></svg><span>Aujourd'hui</span></button>
@@ -531,6 +612,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   <button class="nb" onclick="go('stats',this)"><svg viewBox="0 0 24 24" fill="none"><path d="M3 17l4-6 4 4 4-7 4 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Stats</span></button>
   <button class="nb" onclick="go('histo',this)"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor"/><path d="M8 2v4M16 2v4M3 10h18" stroke="currentColor" stroke-linecap="round"/></svg><span>Historique</span></button>
   <button class="nb" onclick="go('ia',this)"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2.5 7.5H22l-6.5 4.5 2.5 7.5L12 17l-6 4.5 2.5-7.5L2 9.5h7.5L12 2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Analyse IA</span></button>
+  <button class="nb" onclick="go('map',this)"><svg viewBox="0 0 24 24" fill="none"><path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3v15M15 6v15" stroke="currentColor" stroke-linecap="round"/></svg><span>Carte</span></button>
   <button class="nb" onclick="go('profil',this)"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-linecap="round"/></svg><span>Profil</span></button>
 </nav>
 
@@ -545,6 +627,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
       <div class="sport-tile" onclick="selSport('piscine')" data-s="piscine"><div class="sport-tile-ico">🏊</div><div class="sport-tile-nm">Piscine</div></div>
       <div class="sport-tile" onclick="selSport('tennis')" data-s="tennis"><div class="sport-tile-ico">🎾</div><div class="sport-tile-nm">Tennis</div></div>
       <div class="sport-tile" onclick="selSport('repos')" data-s="repos"><div class="sport-tile-ico">🧘</div><div class="sport-tile-nm">Repos actif</div></div>
+      <div class="sport-tile" onclick="selSport('rugby')" data-s="rugby"><div class="sport-tile-ico">🏉</div><div class="sport-tile-nm">Rugby à 5</div></div>
+      <div class="sport-tile" onclick="selSport('muscu')" data-s="muscu"><div class="sport-tile-ico">🏋️</div><div class="sport-tile-nm">Musculation</div></div>
+      <div class="sport-tile" onclick="selSport('velo')" data-s="velo"><div class="sport-tile-ico">🚴</div><div class="sport-tile-nm">Vélo</div></div>
+      <div class="sport-tile" onclick="selSport('basket')" data-s="basket"><div class="sport-tile-ico">🏀</div><div class="sport-tile-nm">Basket</div></div>
     </div>
     <div class="f-group">
       <div class="f-field"><label class="f-lbl">Durée (min)</label><input class="f-in" type="number" id="s-dur" placeholder="45" inputmode="numeric"></div>
@@ -564,7 +650,32 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
         <div class="f-field"><label class="f-lbl">FC moy (bpm)</label><input class="f-in" type="number" id="s-fc" placeholder="148" inputmode="numeric"></div>
       </div>
     </div>
-    <button class="btn-main" onclick="addAct()">Ajouter à ma journée</button>
+    <div class="f-group" id="s-muscu-fields" style="display:none">
+      <div class="f-field"><label class="f-lbl">Poids soulevé max (kg)</label><input class="f-in" type="number" id="s-poids-souv" placeholder="80" inputmode="numeric"></div>
+      <div class="f-field"><label class="f-lbl">Groupes musculaires</label>
+        <select class="f-in" id="s-muscles">
+          <option value="">—</option>
+          <option value="upper">Haut du corps</option>
+          <option value="lower">Bas du corps</option>
+          <option value="full">Full body</option>
+          <option value="cardio">Cardio</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-group">
+      <div class="f-field"><label class="f-lbl">Feeling (1-5)</label>
+        <select class="f-in" id="s-feeling">
+          <option value="">—</option>
+          <option value="1">😫 1 – Très dur</option>
+          <option value="2">😓 2 – Difficile</option>
+          <option value="3">😐 3 – Correct</option>
+          <option value="4">😊 4 – Bien</option>
+          <option value="5">🔥 5 – Excellent</option>
+        </select>
+      </div>
+      <div class="f-field"><label class="f-lbl">Calories brûlées</label><input class="f-in" type="number" id="s-cal-sport" placeholder="estimées" inputmode="numeric"></div>
+    </div>
+        <button class="btn-main" onclick="addAct()">Ajouter à ma journée</button>
   </div>
 </div>
 
@@ -619,6 +730,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 // ═══════════════════════════════════════════
@@ -722,9 +834,9 @@ function go(id, btn){
 // ═══════════════════════════════════════════
 // TODAY
 // ═══════════════════════════════════════════
-function sportEmoji(s){ return{course:'🏃',piscine:'🏊',tennis:'🎾',repos:'🧘'}[s]||'•'; }
-function sportLabel(s){ return{course:'Course à pied',piscine:'Piscine',tennis:'Tennis',repos:'Repos actif'}[s]||s; }
-function sportBg(s){ return{course:'rgba(0,245,160,.12)',piscine:'rgba(91,156,246,.12)',tennis:'rgba(255,201,77,.12)',repos:'rgba(255,255,255,.06)'}[s]||'rgba(255,255,255,.06)'; }
+function sportEmoji(s){ return{course:'🏃',piscine:'🏊',tennis:'🎾',repos:'🧘',rugby:'🏉',muscu:'🏋️',velo:'🚴',basket:'🏀'}[s]||'•'; }
+function sportLabel(s){ return{course:'Course à pied',piscine:'Piscine',tennis:'Tennis',repos:'Repos actif',rugby:'Rugby à 5',muscu:'Musculation',velo:'Vélo',basket:'Basket'}[s]||s; }
+function sportBg(s){ return{course:'rgba(0,245,160,.12)',piscine:'rgba(91,156,246,.12)',tennis:'rgba(255,201,77,.12)',repos:'rgba(255,255,255,.06)',rugby:'rgba(255,107,107,.12)',muscu:'rgba(179,136,255,.12)',velo:'rgba(255,181,71,.12)',basket:'rgba(255,140,0,.12)'}[s]||'rgba(255,255,255,.06)'; }
 
 function fcZone(fc){
   // Zones basées sur FC max estimée (220-âge, on suppose ~45 ans => FCmax ~175)
@@ -779,6 +891,9 @@ function saveDay(){
   const p=parseFloat(document.getElementById('td-som').value.replace(',','.'));
   if(!isNaN(p)) d.sommeil=p;
   d.fatigue = parseInt(document.getElementById('td-fat').value);
+  d.humeur = parseInt(document.getElementById('td-humeur').value);
+  const tempVal = parseFloat(document.getElementById('td-temp').value);
+  if(!isNaN(tempVal)) d.temp = tempVal;
   d.notes = document.getElementById('td-notes').value.trim();
   saveAll();
   syncToCloud(today, d);
@@ -841,7 +956,8 @@ function selSport(s){
   selSportVal=s;
   document.querySelectorAll('.sport-tile').forEach(t=>t.classList.toggle('sel',t.dataset.s===s));
   document.getElementById('s-course-extra').style.display=s==='course'?'block':'none';
-  document.getElementById('s-dist-wrap').style.display=(s==='course'||s==='piscine')?'flex':'none';
+  document.getElementById('s-dist-wrap').style.display=(s==='course'||s==='piscine'||s==='velo')?'flex':'none';
+  document.getElementById('s-muscu-fields').style.display=s==='muscu'?'grid':'none';
 }
 function addAct(){
   if(!selSportVal){toast('⚠ Choisis une activité');return;}
@@ -851,6 +967,10 @@ function addAct(){
     dist:parseFloat(document.getElementById('s-dist').value)||null,
     allure:document.getElementById('s-allure').value,
     fc:parseInt(document.getElementById('s-fc').value)||null,
+    feeling:parseInt(document.getElementById('s-feeling').value)||null,
+    calSport:parseInt(document.getElementById('s-cal-sport').value)||null,
+    poidsSouv:parseInt(document.getElementById('s-poids-souv').value)||null,
+    muscles:document.getElementById('s-muscles').value,
     source:'manuel'
   };
   todayActs.push(act);
@@ -872,6 +992,10 @@ function calcTRIMP(acts){
       total+=d*mult;
     } else if(a.sport==='piscine') total+=d*0.8;
     else if(a.sport==='tennis') total+=d*0.9;
+    else if(a.sport==='rugby') total+=d*1.3;
+    else if(a.sport==='muscu') total+=d*0.7;
+    else if(a.sport==='velo') total+=d*0.6;
+    else if(a.sport==='basket') total+=d*1.1;
   });
   return Math.round(total);
 }
@@ -1223,6 +1347,302 @@ function toast(msg,dur=2300){
 }
 
 
+
+
+// ═══════════════════════════════════════════
+// MÉTÉO AUTOMATIQUE (Open-Meteo)
+// ═══════════════════════════════════════════
+async function fetchWeather(){
+  const badge = document.getElementById('temp-auto-badge');
+  badge.textContent = '…';
+  try{
+    const pos = await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000}));
+    const {latitude:lat, longitude:lon} = pos.coords;
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+    const data = await r.json();
+    const temp = Math.round(data.current_weather.temperature);
+    document.getElementById('td-temp').value = temp;
+    badge.textContent = temp+'°C ✓';
+    toast('🌡 '+temp+'°C récupéré automatiquement');
+  } catch(e){
+    badge.textContent = 'auto ↻';
+    toast('⚠ Géolocalisation refusée — saisis manuellement');
+  }
+}
+
+// Auto-fetch météo à l'ouverture
+function autoWeather(){
+  if('geolocation' in navigator){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const {latitude:lat,longitude:lon} = pos.coords;
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(r=>r.json()).then(d=>{
+          const temp=Math.round(d.current_weather.temperature);
+          document.getElementById('td-temp').value=temp;
+          document.getElementById('temp-auto-badge').textContent=temp+'°C ✓';
+        }).catch(()=>{});
+    },()=>{},{timeout:4000});
+  }
+}
+
+// ═══════════════════════════════════════════
+// HUMEUR
+// ═══════════════════════════════════════════
+function updateHumeurDisp(v){
+  const emojis={1:'😫',2:'😓',3:'😐',4:'😊',5:'🔥'};
+  document.getElementById('humeur-disp').textContent=(emojis[v]||'😐')+' '+v+'/5';
+}
+
+// ═══════════════════════════════════════════
+// OBJECTIF HEBDO + BADGES + COMPARAISON
+// ═══════════════════════════════════════════
+function saveHebdoObj(){
+  loadAll();
+  cfg.hebdoObj = parseInt(document.getElementById('hebdo-obj-input').value)||25;
+  saveAll();
+  updateHebdo();
+}
+
+function updateHebdo(){
+  loadAll();
+  const obj = cfg.hebdoObj||25;
+  document.getElementById('hebdo-obj-input').value = obj;
+  document.getElementById('hebdo-obj-km').textContent = obj;
+  // Semaine courante
+  const now=new Date(); const mon=new Date(now);
+  mon.setDate(now.getDate()-((now.getDay()+6)%7)); mon.setHours(0,0,0,0);
+  const monPrev=new Date(mon); monPrev.setDate(mon.getDate()-7);
+  const weekDays=Object.values(db.days).filter(d=>new Date(d.date+'T12:00:00')>=mon);
+  const prevDays=Object.values(db.days).filter(d=>{const dt=new Date(d.date+'T12:00:00');return dt>=monPrev&&dt<mon;});
+  const kmThis=weekDays.flatMap(d=>(d.activities||[]).filter(a=>a.sport==='course')).reduce((s,a)=>s+(a.dist||0),0);
+  const kmPrev=prevDays.flatMap(d=>(d.activities||[]).filter(a=>a.sport==='course')).reduce((s,a)=>s+(a.dist||0),0);
+  document.getElementById('hebdo-km').innerHTML=kmThis.toFixed(1)+' <span style="font-size:13px;color:var(--t3)">km</span>';
+  const pct=Math.min(100,(kmThis/obj)*100);
+  document.getElementById('hebdo-bar').style.width=pct.toFixed(0)+'%';
+  document.getElementById('hebdo-pct').textContent=pct.toFixed(0)+'%';
+  // Comparaison semaine précédente
+  if(kmPrev>0){
+    const diff=kmThis-kmPrev;
+    const sign=diff>=0?'+':'';
+    document.getElementById('hebdo-compare').textContent='vs sem. préc. '+sign+diff.toFixed(1)+'km';
+    document.getElementById('hebdo-compare').style.color=diff>=0?'var(--g)':'var(--re)';
+  }
+  // Badges
+  const badges=[];
+  if(kmThis>=obj) badges.push({ico:'🏆',lbl:'Objectif !',cls:'green'});
+  if(kmThis>=50) badges.push({ico:'🔥',lbl:'50km',cls:'green'});
+  if(weekDays.filter(d=>d.activities&&d.activities.some(a=>a.sport==='course')).length>=3) badges.push({ico:'⚡',lbl:'3 séances',cls:'blue'});
+  const bc=document.getElementById('badge-container');
+  bc.innerHTML=badges.map(b=>`<span class="badge-award ${b.cls}">${b.ico} ${b.lbl}</span>`).join('');
+  // Alerte récupération 48h
+  const runDays=weekDays.filter(d=>d.activities&&d.activities.some(a=>a.sport==='course')).map(d=>d.date).sort();
+  if(runDays.length>=2){
+    const last2=runDays.slice(-2);
+    const d1=new Date(last2[0]+'T12:00:00'), d2=new Date(last2[1]+'T12:00:00');
+    const diffH=(d2-d1)/3600000;
+    if(diffH<48) document.getElementById('recup-warning').textContent='⚠ Moins de 48h entre 2 courses';
+    else document.getElementById('recup-warning').textContent='';
+  }
+}
+
+// Patch init pour lancer météo et hebdo
+const _origInit = init;
+init = function(){
+  _origInit();
+  autoWeather();
+  updateHebdo();
+};
+
+// Patch saveDay pour updateHebdo
+const _origSaveDay = saveDay;
+saveDay = function(){
+  _origSaveDay();
+  updateHebdo();
+};
+
+// ═══════════════════════════════════════════
+// CARTE LEAFLET
+// ═══════════════════════════════════════════
+let mapInstance = null;
+let mapLayers = {all:[], course:[], piscine:[], tennis:[], favs:[]};
+let currentMapFilter = 'all';
+let favMarkers = [];
+
+const SPORT_COLORS = {course:'#00f5a0', piscine:'#5b9cf6', tennis:'#ffc94d', rugby:'#ff6b6b', muscu:'#b388ff', velo:'#ffb547', basket:'#ff8c00'};
+
+function initMap(){
+  if(mapInstance) return;
+  mapInstance = L.map('map-main', {
+    zoomControl: true,
+    attributionControl: false
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19
+  }).addTo(mapInstance);
+  // Clic long pour ajouter favori
+  mapInstance.on('contextmenu', function(e){
+    promptAddFav(e.latlng.lat, e.latlng.lng);
+  });
+  loadMapData();
+}
+
+function loadMapData(){
+  loadAll();
+  const days = Object.values(db.days);
+  const allActs = days.flatMap(d=>(d.activities||[]).map(a=>({...a, date:d.date})));
+  const stravaActs = allActs.filter(a=>a.stravaId && a.stravaLat && a.stravaLng);
+  // Placer les marqueurs de départ depuis données Strava
+  let bounds = [];
+  stravaActs.forEach(a=>{
+    const color = SPORT_COLORS[a.sport]||'#fff';
+    const marker = L.circleMarker([a.stravaLat, a.stravaLng], {
+      radius: 6, fillColor: color, color: 'rgba(0,0,0,.5)',
+      weight: 1, opacity: 1, fillOpacity: .85
+    }).bindPopup(`<b>${sportLabel(a.sport)}</b><br>${a.date}<br>${a.dist?a.dist+'km':''}${a.duree?' · '+a.duree+'min':''}`);
+    marker.addTo(mapInstance);
+    bounds.push([a.stravaLat, a.stravaLng]);
+    if(mapLayers[a.sport]) mapLayers[a.sport].push(marker);
+    mapLayers.all.push(marker);
+  });
+  // Afficher lieux favoris
+  renderFavMarkers();
+  // Si pas de données GPS, centrer sur Mansle (ton secteur)
+  if(bounds.length > 0){
+    mapInstance.fitBounds(bounds, {padding:[20,20]});
+  } else {
+    mapInstance.setView([45.878, 0.174], 12); // Mansle, Charente
+  }
+  document.getElementById('map-count').textContent = stravaActs.length + ' activité' + (stravaActs.length>1?'s':'');
+  renderZoneStats();
+}
+
+function filterMap(type, btn){
+  document.querySelectorAll('.map-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  currentMapFilter = type;
+  // Masquer/afficher les layers
+  Object.keys(mapLayers).forEach(k=>{
+    mapLayers[k].forEach(m=>{
+      if(type==='all'||type===k) m.addTo(mapInstance);
+      else mapInstance.removeLayer(m);
+    });
+  });
+  if(type==='favs'){
+    favMarkers.forEach(m=>m.addTo(mapInstance));
+  }
+}
+
+function renderFavMarkers(){
+  loadAll();
+  const favs = cfg.favPlaces||[];
+  // Nettoyer anciens marqueurs
+  favMarkers.forEach(m=>mapInstance&&mapInstance.removeLayer(m));
+  favMarkers=[];
+  favs.forEach((f,i)=>{
+    const icon = L.divIcon({
+      html: `<div style="background:var(--am,#ffc94d);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);">⭐</div>`,
+      iconSize:[26,26], iconAnchor:[13,13], className:''
+    });
+    const m = L.marker([f.lat, f.lng], {icon})
+      .bindPopup(`<b>${f.name}</b><br>${f.visits||0} passage${f.visits>1?'s':''}`);
+    m.addTo(mapInstance);
+    favMarkers.push(m);
+    mapLayers.favs.push(m);
+  });
+  renderFavList();
+}
+
+function renderFavList(){
+  loadAll();
+  const favs = cfg.favPlaces||[];
+  const el = document.getElementById('fav-list');
+  document.getElementById('fav-empty').style.display = favs.length?'none':'block';
+  document.getElementById('fav-count').textContent = favs.length+' lieu'+(favs.length>1?'x':'');
+  // Remove old rows
+  el.querySelectorAll('.fav-row').forEach(r=>r.remove());
+  favs.forEach((f,i)=>{
+    const row = document.createElement('div');
+    row.className='fav-row';
+    row.innerHTML=`
+      <div class="fav-ico">${f.emoji||'📍'}</div>
+      <div style="flex:1">
+        <div class="fav-name">${f.name}</div>
+        <div class="fav-meta">${f.lat.toFixed(4)}, ${f.lng.toFixed(4)} · ${f.visits||0} passage${f.visits>1?'s':''}</div>
+      </div>
+      <div class="fav-del" onclick="deleteFav(${i})">×</div>`;
+    row.addEventListener('click', ()=>{
+      if(mapInstance) mapInstance.setView([f.lat,f.lng],15);
+    });
+    el.appendChild(row);
+  });
+}
+
+function promptAddFav(lat, lng){
+  const name = prompt('Nom de ce lieu (ex: "Bords de Charente", "Forêt de Brizambourg"):', '');
+  if(!name) return;
+  const emoji = prompt('Emoji (ex: 🌲 🏞 🏟 🏊) :', '📍')||'📍';
+  loadAll();
+  if(!cfg.favPlaces) cfg.favPlaces=[];
+  cfg.favPlaces.push({name, emoji, lat, lng, visits:0, addedAt:new Date().toISOString()});
+  saveAll();
+  renderFavMarkers();
+  renderZoneStats();
+  toast('⭐ "'+name+'" ajouté aux favoris');
+}
+
+function openAddFav(){
+  // Centrer sur la vue actuelle
+  const center = mapInstance ? mapInstance.getCenter() : {lat:45.878, lng:0.174};
+  promptAddFav(center.lat, center.lng);
+}
+
+function deleteFav(i){
+  loadAll();
+  if(!cfg.favPlaces) return;
+  const name = cfg.favPlaces[i].name;
+  cfg.favPlaces.splice(i,1);
+  saveAll();
+  renderFavMarkers();
+  renderZoneStats();
+  toast('🗑 "'+name+'" supprimé');
+}
+
+function renderZoneStats(){
+  loadAll();
+  const favs = cfg.favPlaces||[];
+  const el = document.getElementById('zone-stats');
+  if(!favs.length){ el.textContent='Ajoute des lieux favoris pour voir les stats'; return; }
+  const days = Object.values(db.days);
+  const runs = days.flatMap(d=>(d.activities||[]).filter(a=>a.sport==='course'&&a.stravaLat));
+  let html = '';
+  favs.forEach(f=>{
+    // Compter passages dans un rayon de ~500m
+    const nearby = runs.filter(a=>{
+      const d = Math.sqrt(Math.pow((a.stravaLat-f.lat)*111000,2)+Math.pow((a.stravaLng-f.lng)*111000*Math.cos(f.lat*Math.PI/180),2));
+      return d < 500;
+    });
+    f.visits = nearby.length;
+    html += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px;">
+      <span>${f.emoji} ${f.name}</span>
+      <span style="color:var(--g);font-family:'JetBrains Mono',monospace;font-weight:700;">${nearby.length} passage${nearby.length>1?'s':''}</span>
+    </div>`;
+  });
+  el.innerHTML = html || '<div style="color:var(--t3);text-align:center;padding:8px;">Aucune donnée GPS disponible</div>';
+  saveAll();
+}
+
+// Patch go() pour init carte
+const _origGoMap = go;
+go = function(id, btn){
+  _origGoMap(id, btn);
+  if(id==='map'){
+    setTimeout(()=>{
+      initMap();
+      if(mapInstance) mapInstance.invalidateSize();
+    }, 100);
+  }
+};
+
 // ═══════════════════════════════════════════
 // PROFIL
 // ═══════════════════════════════════════════
@@ -1376,6 +1796,8 @@ async function importStrava(){
       if(!sport) return;
       d.activities.push({
         sport,
+        stravaLat: a.start_latlng&&a.start_latlng[0]?a.start_latlng[0]:null,
+        stravaLng: a.start_latlng&&a.start_latlng[1]?a.start_latlng[1]:null,
         duree: Math.round(a.moving_time/60),
         dist: sport==='course'||sport==='piscine' ? Math.round(a.distance/100)/10 : null,
         fc: a.average_heartrate ? Math.round(a.average_heartrate) : null,
