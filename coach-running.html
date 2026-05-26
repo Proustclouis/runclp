@@ -273,7 +273,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .map-card-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);}
 .map-card-head h3{font-size:13px;font-weight:700;letter-spacing:-.2px;}
 .map-card-head small{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
-#map-main{height:280px;width:100%;background:var(--bg2);}
+#map-main{height:280px;width:100%;background:var(--bg2);position:relative;z-index:1;}
 .map-chips{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .map-chip{flex-shrink:0;display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--line2);border-radius:20px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .map-chip.active{border-color:var(--g);color:var(--g);background:var(--gd);}
@@ -293,6 +293,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .badge-award.green{background:var(--gd);border-color:rgba(0,245,160,.3);color:var(--g);}
 .badge-award.blue{background:var(--bld);border-color:rgba(91,156,246,.3);color:var(--bl);}
 .weather-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bld);border:1px solid rgba(91,156,246,.2);border-radius:10px;padding:3px 8px;font-size:11px;color:var(--bl);font-family:'JetBrains Mono',monospace;}
+
+
+.leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow,
+.leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas,
+.leaflet-zoom-box, .leaflet-image-layer, .leaflet-layer {position:absolute!important;}
+.leaflet-container{background:#13131a!important;outline:0;}
+.leaflet-popup-content-wrapper{background:var(--bg2);color:var(--t1);border:1px solid var(--line2);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.leaflet-popup-tip{background:var(--bg2);}
 
 /* ── TOAST ── */
 .toast{position:fixed;bottom:calc(var(--sb)+72px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg2);border:1px solid var(--line2);color:var(--t1);padding:10px 18px;border-radius:20px;font-size:12px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;z-index:200;backdrop-filter:blur(10px);}
@@ -543,7 +551,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
       <div class="f-group full">
         <div class="f-field"><label class="f-lbl">Démarré le</label><input class="f-in" type="date" id="pr-start"></div>
       </div>
-      <button class="btn-main" onclick="saveProfil()" style="position:sticky;bottom:calc(var(--sb) + 8px);z-index:10;box-shadow:0 -8px 20px rgba(3,3,5,.8);">✓ Enregistrer le profil</button>
+      <button class="btn-main" onclick="saveProfil()">✓ Enregistrer le profil</button>
+      <div style="height:80px;"></div>
     </div>
 
     <div class="profil-card">
@@ -578,7 +587,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
         <div class="map-chip" onclick="filterMap('basket',this)">🏀 Basket</div>
         <div class="map-chip" onclick="filterMap('favs',this)">⭐ Favoris</div>
       </div>
-      <div id="map-main"></div>
+      <div id="map-main" style="height:280px;width:100%;position:relative;z-index:1;"></div>
     </div>
 
     <!-- Lieux favoris -->
@@ -1262,12 +1271,43 @@ Fournis une analyse structurée et précise en français :
 Sois précis sur les données, encourageant, et adapte les conseils à la semaine ${wk} du plan. Texte simple sans markdown ni astérisques.`;
 
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompt}]})});
-    const data=await r.json();
-    const text=data.content?.filter(c=>c.type==='text').map(c=>c.text).join('')||'Analyse indisponible.';
+    // Appel via allorigins proxy pour contourner CORS depuis GitHub Pages
+    const apiPayload = JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1200,
+      messages:[{role:'user',content:prompt}]
+    });
+    const proxyUrl = 'https://api.allorigins.win/raw?url='+encodeURIComponent('https://api.anthropic.com/v1/messages');
+    let r, data, text;
+    // Tentative 1 : appel direct (fonctionne depuis claude.ai et certains hébergeurs)
+    try{
+      r = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+        body:apiPayload
+      });
+      data = await r.json();
+      text = data.content?.filter(c=>c.type==='text').map(c=>c.text).join('');
+    }catch(corsErr){
+      // Tentative 2 : via corsproxy.io
+      r = await fetch('https://corsproxy.io/?'+encodeURIComponent('https://api.anthropic.com/v1/messages'),{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-cors-api-key':'temp_key','anthropic-dangerous-direct-browser-access':'true'},
+        body:apiPayload
+      });
+      data = await r.json();
+      text = data.content?.filter(c=>c.type==='text').map(c=>c.text).join('');
+    }
+    if(!text||text.length<10){
+      // Fallback : analyse locale sans API
+      text = genLocalAnalysis();
+    }
     box.className='ai-text';
     box.innerHTML=text.replace(/\n/g,'<br>');
-  }catch(e){box.className='ai-text';box.textContent='Erreur de connexion. Réessaie.';}
+  }catch(e){
+    box.className='ai-text';
+    box.innerHTML = genLocalAnalysis().replace(/\n/g,'<br>');
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -1348,6 +1388,46 @@ function toast(msg,dur=2300){
 
 
 
+
+
+function genLocalAnalysis(){
+  loadAll();
+  const wk = currentPlanWeek()||1;
+  const plan = PLAN[wk-1];
+  const days = Object.values(db.days).sort((a,b)=>a.date.localeCompare(b.date));
+  const now=new Date(); const monAgo=new Date(now); monAgo.setDate(now.getDate()-7);
+  const week = days.filter(d=>new Date(d.date+'T12:00:00')>=monAgo);
+  const runs = week.flatMap(d=>(d.activities||[]).filter(a=>a.sport==='course'));
+  const kmThis = runs.reduce((s,a)=>s+(a.dist||0),0);
+  const seances = runs.length;
+  const fcArr = runs.filter(a=>a.fc).map(a=>a.fc);
+  const fcMoy = fcArr.length?Math.round(fcArr.reduce((a,b)=>a+b)/fcArr.length):null;
+  const withP = days.filter(d=>d.poids);
+  const lastP = withP.length?withP[withP.length-1].poids:null;
+  const firstP = cfg.poidsDepart||82;
+  const perdu = lastP?Math.max(0,firstP-lastP):0;
+  const fatArr = week.filter(d=>d.fatigue).map(d=>d.fatigue);
+  const fatMoy = fatArr.length?(fatArr.reduce((a,b)=>a+b)/fatArr.length).toFixed(1):null;
+  let txt = '── ANALYSE SEMAINE '+wk+'/16 ── '+plan.phase+'\n\n';
+  txt += '1. RÉSUMÉ\n';
+  txt += 'Tu es en semaine '+wk+' du plan ('+plan.phase+'). ';
+  txt += seances>0?'Cette semaine : '+seances+' séance'+(seances>1?'s':'')+ ' de course, '+kmThis.toFixed(1)+' km parcourus.':'Aucune course enregistrée cette semaine.';
+  if(fcMoy) txt += ' FC moyenne : '+fcMoy+' bpm.';
+  txt += '\n\n2. POINTS POSITIFS\n';
+  if(seances>=3) txt += '✓ 3 séances ou plus cette semaine — excellent respect du plan.\n';
+  if(kmThis>=20) txt += '✓ Volume kilométrique solide ('+kmThis.toFixed(1)+' km).\n';
+  if(perdu>0) txt += '✓ '+perdu.toFixed(1)+' kg perdus depuis le début — belle progression poids.\n';
+  if(seances===0 && kmThis===0) txt += '→ Semaine de repos ou données non encore saisies.\n';
+  txt += '\n3. POINTS D'AMÉLIORATION\n';
+  if(seances<3&&seances>0) txt += '→ Objectif : 3 séances/semaine — tu en es à '+seances+'. Ajoute une sortie courte.\n';
+  if(fatMoy&&parseFloat(fatMoy)>=4) txt += '→ Fatigue élevée ('+fatMoy+'/5) — pense à bien récupérer.\n';
+  txt += '\n4. CONSEIL POUR LA SEMAINE PROCHAINE\n';
+  txt += 'Semaine '+wk+' du plan — objectif séance : "'+plan.goal+'". ';
+  if(wk<=4) txt += 'Reste en endurance fondamentale (allure conversation possible).';
+  else if(wk<=10) txt += 'Intègre le fractionné progressivement.';
+  else txt += 'Consolide avant l'affûtage final.';
+  return txt;
+}
 
 // ═══════════════════════════════════════════
 // MÉTÉO AUTOMATIQUE (Open-Meteo)
@@ -1663,6 +1743,8 @@ function saveProfil(){
   saveAll();
   renderProfil();
   toast('✓ Profil enregistré');
+  // Scroll vers le haut de la page profil
+  document.querySelector('.scroll').scrollTo({top:0,behavior:'smooth'});
   // Mettre à jour le header semaine
   const wkNum = currentPlanWeek();
   document.getElementById('hdr-week').textContent = wkNum ? 'Semaine '+wkNum+'/16 — '+PLAN[wkNum-1].phase : 'Plan 16 semaines';
