@@ -1159,7 +1159,7 @@ init();
 // ═══════════════════════════════════════════
 const STRAVA_CLIENT_ID = '251312';
 const STRAVA_CLIENT_SECRET = 'c4d7be76846629dfb44567130c6feecffbd198f1';
-const STRAVA_REDIRECT = window.location.href.split('?')[0];
+const STRAVA_REDIRECT = 'https://proustclouis.github.io/runclp/coach-running.html';
 
 function stravaAuthUrl(){
   return `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${encodeURIComponent(STRAVA_REDIRECT)}&response_type=code&scope=activity:read_all`;
