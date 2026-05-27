@@ -818,6 +818,9 @@ function init(){
   // notif toggle
   if(cfg.notifOn){ document.getElementById('notif-toggle').classList.add('on'); document.getElementById('notif-time').value = cfg.notifTime||'20:00'; }
   scheduleNotif();
+  // Météo auto + hebdo
+  autoWeather();
+  updateHebdo();
 }
 
 function updateSyncDot(){
@@ -834,10 +837,12 @@ function go(id, btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('p-'+id).classList.add('on');
-  btn.classList.add('on');
+  if(btn) btn.classList.add('on');
   document.querySelector('.scroll').scrollTop=0;
   if(id==='stats') renderStats();
   if(id==='histo') renderHisto();
+  if(id==='profil') renderProfil();
+  if(id==='map') setTimeout(()=>{ initMap(); if(mapInstance) mapInstance.invalidateSize(); }, 150);
 }
 
 // ═══════════════════════════════════════════
@@ -907,6 +912,7 @@ function saveDay(){
   saveAll();
   syncToCloud(today, d);
   toast('✓ Journée enregistrée');
+  updateHebdo();
   document.getElementById('qc-fat-disp').textContent = d.fatigue+'/5';
 }
 
@@ -1525,20 +1531,7 @@ function updateHebdo(){
   }
 }
 
-// Patch init pour lancer météo et hebdo
-const _origInit = init;
-init = function(){
-  _origInit();
-  autoWeather();
-  updateHebdo();
-};
 
-// Patch saveDay pour updateHebdo
-const _origSaveDay = saveDay;
-saveDay = function(){
-  _origSaveDay();
-  updateHebdo();
-};
 
 // ═══════════════════════════════════════════
 // CARTE LEAFLET
@@ -1711,17 +1704,6 @@ function renderZoneStats(){
   saveAll();
 }
 
-// Patch go() pour init carte
-const _origGoMap = go;
-go = function(id, btn){
-  _origGoMap(id, btn);
-  if(id==='map'){
-    setTimeout(()=>{
-      initMap();
-      if(mapInstance) mapInstance.invalidateSize();
-    }, 100);
-  }
-};
 
 // ═══════════════════════════════════════════
 // PROFIL
@@ -1797,12 +1779,6 @@ function renderProfil(){
   ].filter(Boolean).join('<br>');
 }
 
-// Patch go() pour appeler renderProfil
-const _origGo = go;
-go = function(id, btn){
-  _origGo(id, btn);
-  if(id==='profil') renderProfil();
-};
 
 // ═══════════════════════════════════════════
 // START
